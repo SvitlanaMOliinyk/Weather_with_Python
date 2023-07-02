@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>City Selection</title>
+    <style>
+        /* CSS styles */
+        body {
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        li {
+            padding: 10px;
+            background-color: #f2f2f2;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        li:hover {
+            background-color: #ddd;
+        }
+        li.selected {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Select a City</h1>
+    <form action="/weather" method="get">
+        <input type="text" name="city" placeholder="Enter a city name" required>
+        <button type="submit">Submit</button>
+    </form>
+    <ul>
+        {% for variant in variants %}
+        <li class="city-option" data-lat="{{ variant.lat }}" data-lon="{{ variant.lon }}">{{ variant.name }}</li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        // JavaScript code
+        const cityOptions = document.querySelectorAll('.city-option');
+        cityOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const lat = option.getAttribute('data-lat');
+                const lon = option.getAttribute('data-lon');
+                window.location.href = `/weather?lat=${lat}&lon=${lon}`;
+            });
+        });
+    </script>
+</body>
+</html>
