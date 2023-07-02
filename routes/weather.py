@@ -50,12 +50,12 @@ def get_weather(latitude, longitude):
 @weather_bp.route('/weather', methods=['GET', 'POST'])
 def weather():
     if request.method == 'POST':
-        # Handle form submission with a single city name
+        # form submission with a single city name
         city = request.form.get('city')
         coordinates = geolocation(city)
 
         if isinstance(coordinates, list):
-            # Multiple variants found, render HTML template for user selection
+            # render HTML template for user selection in multiple variants
             variants = []
 
             for variant in coordinates:
@@ -77,7 +77,7 @@ def weather():
             else:
                 return 'Failed to retrieve weather data for any variant.'
         elif coordinates and 'name' in coordinates:
-            # Only one variant found, call weather function with the coordinates
+            # call weather function with the coordinates for one variant
             latitude, longitude = coordinates['lat'], coordinates['lon']
             weather_data = get_weather(latitude, longitude)
             # Process weather data and return the response
@@ -86,8 +86,7 @@ def weather():
             else:
                 return 'Failed to retrieve weather data.'
         else:
-            # No variants found or error case, handle accordingly
             return 'Unable to retrieve geolocation for the specified city.'
     else:
-        # Handle GET request, render city input form
+        # render city input form
         return render_template('city_input.html')
