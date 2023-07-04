@@ -17,25 +17,27 @@ def geolocation(city):
     response = requests.get(url, headers=headers)
     data = response.json()
 
-    print(f"Geolocation API Response: {data}")
-
     if 'locations' in data and len(data['locations']) > 0:
-        coordinates = []
-        for location in data['locations']:
+        locations = data['locations']
+        if len(locations) == 1:
+            location = locations[0]
             longitude = location['referencePosition']['longitude']
             latitude = location['referencePosition']['latitude']
-            coordinates.append({'name': location['formattedAddress'], 'lat': latitude, 'lon': longitude})
-
-        if len(coordinates) == 1:
-            return coordinates[0]
+            return {'name': location['formattedAddress'], 'lat': latitude, 'lon': longitude}
         else:
+            coordinates = []
+            for location in locations:
+                longitude = location['referencePosition']['longitude']
+                latitude = location['referencePosition']['latitude']
+                coordinates.append({'name': location['formattedAddress'], 'lat': latitude, 'lon': longitude})
             return coordinates
     else:
         return None
 
 
+
 def get_weather(latitude, longitude):
-    url = f"https://api.openweathermap.org/data/2.5/weather?lat={latitude}&lon={longitude}&appid={api_key}"
+    url = f"https://api.openweathermap.org/data/2.5/weather?lat={latitude}&lon={longitude}&appid={api_key}&units=metric"
     response = requests.get(url)
 
     print(f"Weather API Response: {response.text}")
@@ -50,43 +52,60 @@ def get_weather(latitude, longitude):
 @weather_bp.route('/weather', methods=['GET', 'POST'])
 def weather():
     if request.method == 'POST':
-        # form submission with a single city name
         city = request.form.get('city')
         coordinates = geolocation(city)
 
-        if isinstance(coordinates, list):
-            # render HTML template for user selection in multiple variants
-            variants = []
-
-            for variant in coordinates:
-                if 'name' in variant:
-                    latitude, longitude = variant['lat'], variant['lon']
-                    weather_data = get_weather(latitude, longitude)
-
-                    if weather_data:
-                        variant_data = {
-                            'name': variant['name'],
-                            'weather': weather_data['weather'][0]['main'],
-                            'temperature': weather_data['main']['temp'],
-                            'humidity': weather_data['main']['humidity'],
-                        }
-                        variants.append(variant_data)
-
-            if variants:
-                return render_template('city_selection.html', variants=variants)
-            else:
-                return 'Failed to retrieve weather data for any variant.'
+        if isinstance(coordinates, list) and len(coordinates) > 0:
+            return render_template('city_selection.html', city=city, variants=coordinates)
         elif coordinates and 'name' in coordinates:
-            # call weather function with the coordinates for one variant
             latitude, longitude = coordinates['lat'], coordinates['lon']
             weather_data = get_weather(latitude, longitude)
-            # Process weather data and return the response
+
             if weather_data:
-                return render_template('weather.html', city=city, weather_data=weather_data)
+                temperature = weather_data['main']['temp']
+                description = weather_data['weather'][0]['description']
+                main = weather_data['weather'][0]['main']
+                return render_template('weather.html', city=city, temperature=temperature, description=description, main=main)
             else:
                 return 'Failed to retrieve weather data.'
         else:
-            return 'Unable to retrieve geolocation for the specified city.'
+            return render_template('city_not_found.html', city=city)
     else:
         # render city input form
         return render_template('city_input.html')
+
+
+@weather_bp.route('/select-variant', methods=['POST'])
+def select_variant():
+    city = request.form.get('city')
+    variant_index = int(request.form.get('variant_index'))
+    coordinates = geolocation(city)
+
+    if isinstance(coordinates, list):
+        if 0 <= variant_index < len(coordinates):
+            variant = coordinates[variant_index]
+            latitude, longitude = variant['lat'], variant['lon']
+            weather_data = get_weather(latitude, longitude)
+
+            if weather_data:
+                temperature = weather_data['main']['temp']
+                description = weather_data['weather'][0]['description']
+                main = weather_data['weather'][0]['main']
+                return render_template('weather.html', city=city, temperature=temperature, description=description, main=main)
+            else:
+                return 'Failed to retrieve weather data.'
+        else:
+            return 'Invalid variant selection.'
+    elif isinstance(coordinates, dict):
+        latitude, longitude = coordinates['lat'], coordinates['lon']
+        weather_data = get_weather(latitude, longitude)
+
+        if weather_data:
+            temperature = weather_data['main']['temp']
+            description = weather_data['weather'][0]['description']
+            main = weather_data['weather'][0]['main']
+            return render_template('weather.html', city=city, temperature=temperature, description=description, main=main)
+        else:
+            return 'Failed to retrieve weather data.'
+    else:
+        return 'Invalid variant selection.'

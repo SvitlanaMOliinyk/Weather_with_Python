@@ -1,0 +1,32 @@
+
+        body {
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        li {
+            padding: 10px;
+            background-color: #f2f2f2;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        li:hover {
+            background-color: #ddd;
+        }
+        li.selected {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .weather-info {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 24px;
+        }
