@@ -16,7 +16,7 @@ def geolocation(city):
     }
     response = requests.get(url, headers=headers)
     data = response.json()
-
+    print(f"Weather API Response: {response.text}")
     if 'locations' in data and len(data['locations']) > 0:
         locations = data['locations']
         if len(locations) == 1:
@@ -40,7 +40,6 @@ def get_weather(latitude, longitude):
     url = f"https://api.openweathermap.org/data/2.5/weather?lat={latitude}&lon={longitude}&appid={api_key}&units=metric"
     response = requests.get(url)
 
-    print(f"Weather API Response: {response.text}")
 
     if response.status_code == 200:
         data = response.json()
@@ -95,7 +94,7 @@ def select_variant():
             else:
                 return 'Failed to retrieve weather data.'
         else:
-            return 'Invalid variant selection.'
+            return 'Invalid selection.'
     elif isinstance(coordinates, dict):
         latitude, longitude = coordinates['lat'], coordinates['lon']
         weather_data = get_weather(latitude, longitude)
@@ -108,4 +107,4 @@ def select_variant():
         else:
             return 'Failed to retrieve weather data.'
     else:
-        return 'Invalid variant selection.'
+        return 'Invalid selection.'
